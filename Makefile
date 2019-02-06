@@ -18,15 +18,24 @@ endif
 
 PKG=k8s.io/ingress/controllers/caddy
 
-build: clean
+caddy-ingress-controller:
 	CGO_ENABLED=0 GOOS=${GOOS} go build -a -installsuffix cgo \
 		-ldflags "-s -w -X ${PKG}/pkg/version.RELEASE=${RELEASE} -X ${PKG}/pkg/version.COMMIT=${COMMIT} -X ${PKG}/pkg/version.REPO=${REPO_INFO}" \
-		-o rootfs/caddy-ingress-controller ${PKG}/pkg/cmd/controller
+		-o caddy-ingress-controller ${PKG}/pkg/cmd/controller
 
-container: build
-	docker build --pull -t $(PREFIX):$(RELEASE) rootfs
+container:
+	docker build --pull -t $(PREFIX):$(RELEASE) \
+		--build-arg RELEASE=$(RELEASE) \
+		--build-arg PKG=$(PKG) \
+		--build-arg COMMIT=$(COMMIT) \
+		.
 
-push: container
+debug-container: caddy-ingress-controller
+	docker build --pull -t $(PREFIX):$(RELEASE) \
+		-f Dockerfile.debug \
+		.
+
+push: 
 	docker push $(PREFIX):$(RELEASE)
 
 fmt:

@@ -1,17 +1,12 @@
 # Credits to https://github.com/abiosoft/caddy-docker
-FROM alpine:3.5
+FROM alpine:3.9
 MAINTAINER Kevin Minehart <kminehart@wehco.com>
 
 ARG plugins=http.jwt,http.proxyprotocol,http.realip
 
 RUN apk add --no-cache openssh-client git tar curl
 
-RUN curl --silent --show-error --fail --location \
-      --header "Accept: application/tar+gzip, application/x-gzip, application/octet-stream" -o - \
-      "https://caddyserver.com/download/linux/amd64?plugins=${plugins}" \
-    | tar --no-same-owner -C /usr/bin/ -xz caddy \
- && chmod 0755 /usr/bin/caddy \
- && /usr/bin/caddy -version
+COPY caddy-ingress-controller /caddy-ingress-controller
 
 EXPOSE 80 443 12015
 
@@ -19,6 +14,6 @@ EXPOSE 80 443 12015
 VOLUME /root/.caddy
 
 # This will copy the generated config files to the filesystem.
-COPY . /
+COPY ./etc /etc
 
 CMD ["/caddy-ingress-controller"]
